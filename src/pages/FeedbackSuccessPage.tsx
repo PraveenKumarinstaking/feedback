@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { CheckCircle2, RotateCcw, Home } from 'lucide-react';
+import { CheckCircle2, RotateCcw, Home, LayoutDashboard } from 'lucide-react';
 import { Navbar } from '../components/layout/Navbar';
 import { useSettings } from '../contexts/SettingsContext';
 
@@ -35,11 +35,11 @@ export const FeedbackSuccessPage: React.FC = () => {
             </Link>
 
             <Link
-              to="/"
-              className="w-full sm:w-auto px-6 py-3.5 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold text-sm rounded-xl flex items-center justify-center gap-2 transition-colors"
+              to="/admin/dashboard"
+              className="w-full sm:w-auto px-6 py-3.5 bg-slate-900 hover:bg-slate-800 text-white font-bold text-sm rounded-xl flex items-center justify-center gap-2 transition-colors"
             >
-              <Home className="w-4 h-4" />
-              <span>Return Home</span>
+              <LayoutDashboard className="w-4 h-4 text-brand-400" />
+              <span>View Admin Dashboard</span>
             </Link>
           </div>
         </div>

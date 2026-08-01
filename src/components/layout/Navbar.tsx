@@ -40,7 +40,7 @@ export const Navbar: React.FC = () => {
           </Link>
 
           {/* Navigation Links */}
-          <nav className="flex items-center gap-3">
+          <nav className="flex items-center gap-2.5">
             <Link
               to="/feedback"
               className={`flex items-center gap-1.5 px-4 py-2 text-sm font-semibold rounded-lg transition-all shadow-sm ${
@@ -51,6 +51,15 @@ export const Navbar: React.FC = () => {
             >
               <MessageSquarePlus className="w-4 h-4" />
               <span>Give Feedback</span>
+            </Link>
+
+            <Link
+              to={isAuthenticated ? "/admin/dashboard" : "/admin/login"}
+              className="flex items-center gap-1.5 px-3 py-2 text-xs font-bold text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg border border-gray-200 transition-all"
+              title="Admin Portal"
+            >
+              <LayoutDashboard className="w-3.5 h-3.5 text-brand-600" />
+              <span>{isAuthenticated ? 'Admin Dashboard' : 'Admin Access'}</span>
             </Link>
           </nav>
         </div>
