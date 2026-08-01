@@ -26,7 +26,6 @@ import { MappingsPage } from './pages/MappingsPage';
 import { SettingsPage } from './pages/SettingsPage';
 import { DatasetManager } from './pages/DatasetManager';
 import { FeedDataPage } from './pages/FeedDataPage';
-import { UserAccessPage } from './pages/UserAccessPage';
 
 export const App: React.FC = () => {
   return (
@@ -50,7 +49,6 @@ export const App: React.FC = () => {
               <Route path="department-performance" element={<DepartmentPerformance />} />
               <Route path="responses" element={<FeedbackResponses />} />
               <Route path="reports" element={<ReportsPage />} />
-              <Route path="user-access" element={<UserAccessPage />} />
 
               {/* Master Data CRUD & Data Feeding */}
               <Route path="feed-data" element={<FeedDataPage />} />

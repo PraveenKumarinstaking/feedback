@@ -51,8 +51,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ mobileOpen = false, onCloseMob
     { label: 'Courses', path: '/admin/courses', icon: BookOpen },
     { label: 'Faculty-Course Mappings', path: '/admin/mappings', icon: Link2 },
     
-    { header: 'SYSTEM & SECURITY CONTROL' },
-    { label: 'User Access & Device Matrix', path: '/admin/user-access', icon: ShieldAlert },
+    { header: 'SYSTEM CONTROL' },
     { label: 'Dataset Manager (Excel)', path: '/admin/dataset-manager', icon: FileSpreadsheet },
     { label: 'Institution Settings', path: '/admin/settings', icon: Settings },
   ];
