@@ -33,6 +33,18 @@ export const FacultyPerformance: React.FC = () => {
       }
     }
     loadData();
+
+    const handleRealtimeUpdate = () => {
+      loadData();
+    };
+
+    window.addEventListener('storage', handleRealtimeUpdate);
+    window.addEventListener('edu_feedback_submitted', handleRealtimeUpdate);
+
+    return () => {
+      window.removeEventListener('storage', handleRealtimeUpdate);
+      window.removeEventListener('edu_feedback_submitted', handleRealtimeUpdate);
+    };
   }, []);
 
   const handleSort = (field: 'average_percentage' | 'response_count') => {

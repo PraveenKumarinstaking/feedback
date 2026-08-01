@@ -53,6 +53,18 @@ export const FeedbackResponses: React.FC = () => {
 
   useEffect(() => {
     loadData();
+
+    const handleRealtimeUpdate = () => {
+      loadData();
+    };
+
+    window.addEventListener('storage', handleRealtimeUpdate);
+    window.addEventListener('edu_feedback_submitted', handleRealtimeUpdate);
+
+    return () => {
+      window.removeEventListener('storage', handleRealtimeUpdate);
+      window.removeEventListener('edu_feedback_submitted', handleRealtimeUpdate);
+    };
   }, []);
 
   const showNotification = (type: 'success' | 'error', message: string) => {

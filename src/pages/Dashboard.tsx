@@ -91,7 +91,19 @@ export const Dashboard: React.FC = () => {
 
   useEffect(() => {
     loadDashboardData(filters);
-  }, []);
+
+    const handleRealtimeUpdate = () => {
+      loadDashboardData(filters);
+    };
+
+    window.addEventListener('storage', handleRealtimeUpdate);
+    window.addEventListener('edu_feedback_submitted', handleRealtimeUpdate);
+
+    return () => {
+      window.removeEventListener('storage', handleRealtimeUpdate);
+      window.removeEventListener('edu_feedback_submitted', handleRealtimeUpdate);
+    };
+  }, [filters]);
 
   const handleFilterChange = (newFilters: GlobalFilterState) => {
     setFilters(newFilters);

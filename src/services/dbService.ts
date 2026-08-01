@@ -681,6 +681,10 @@ export const dbService = {
       }
     }
 
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('edu_feedback_submitted'));
+    }
+
     return newSubmission;
   },
 

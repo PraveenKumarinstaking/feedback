@@ -72,7 +72,19 @@ export const ReportsPage: React.FC = () => {
 
   useEffect(() => {
     loadReportData(filters);
-  }, []);
+
+    const handleRealtimeUpdate = () => {
+      loadReportData(filters);
+    };
+
+    window.addEventListener('storage', handleRealtimeUpdate);
+    window.addEventListener('edu_feedback_submitted', handleRealtimeUpdate);
+
+    return () => {
+      window.removeEventListener('storage', handleRealtimeUpdate);
+      window.removeEventListener('edu_feedback_submitted', handleRealtimeUpdate);
+    };
+  }, [filters]);
 
   const handlePrint = () => {
     window.print();
