@@ -71,6 +71,36 @@ To deploy with live Supabase database backend:
 
 ---
 
+## 🌐 Deploying to Vercel (Deployment Guide)
+
+### 1. Import Repository on Vercel
+1. Log in to your [Vercel Dashboard](https://vercel.com).
+2. Click **Add New...** → **Project**.
+3. Select and Import `PraveenKumarinstaking/feedback`.
+
+### 2. Configure Vercel Project & Deployment Region (Country Source)
+- **Framework Preset**: `Vite`
+- **Root Directory**: `./`
+- **Build Command**: `npm run build`
+- **Output Directory**: `dist`
+- **Deployment Region / Country Source**:
+  - In Vercel Project Settings → **Functions & Region** (or during project initialization):
+  - Select your preferred server location for lowest latency:
+    - 🇮🇳 **Mumbai, India (`bom1`)** — *Recommended for Indian Institutions & Colleges*
+    - 🇸🇬 **Singapore (`sin1`)** — *Asia-Pacific*
+    - 🇺🇸 **Washington, D.C., USA (`iad1`)** — *North America*
+    - 🇪🇺 **Frankfurt, Germany (`fra1`)** — *Europe*
+
+### 3. Environment Variables (Optional for Live Supabase Integration)
+Add the following in Vercel **Settings** → **Environment Variables**:
+- `VITE_SUPABASE_URL`: `https://your-supabase-project.supabase.co`
+- `VITE_SUPABASE_ANON_KEY`: `your-supabase-anon-key-here`
+
+Click **Deploy**! Vercel will automatically build and publish your application. Client-side SPA routing (`/admin/*`, `/feedback`, etc.) is pre-configured via `vercel.json`.
+
+---
+
 ## 📄 License & Attribution
 
 Built for academic institutional governance and Internal Quality Assurance Cell (IQAC) reporting standards.
+
