@@ -1,0 +1,1736 @@
+# MASTER DEVELOPMENT PROMPT
+
+## EduFeedback – Student Feedback & Teaching Evaluation Management System
+
+Build a complete, modern, responsive, production-style web application named **“EduFeedback – Student Feedback & Teaching Evaluation Management System.”**
+
+The system will be used by a college/institution to collect student feedback about faculty teaching, automatically calculate teaching performance, provide department/faculty analytics, and generate reports for academic administration and IQAC.
+
+The application must have two main sides:
+
+**1. Student Feedback Portal**
+**2. Admin / IQAC Management Portal**
+
+The application must be fully responsive and work correctly on desktop, tablet, and mobile devices.
+
+---
+
+# 1. TECHNOLOGY STACK
+
+Use:
+
+* React.js
+* Vite
+* Tailwind CSS
+* JavaScript or TypeScript
+* Supabase
+* PostgreSQL through Supabase
+* Supabase Authentication
+* Supabase Row Level Security
+* Recharts or another suitable React chart library
+* Lucide React icons
+
+Do not use MongoDB.
+
+Organize the project using reusable components, clean folder structure, protected admin routes, services/utilities, proper validation, loading states and error handling.
+
+---
+
+# 2. APPLICATION NAME
+
+Display:
+
+**EduFeedback**
+
+Subtitle:
+
+**Student Feedback & Teaching Evaluation System**
+
+Institution name and logo must be configurable from the Admin Settings page.
+
+---
+
+# 3. USER ROLES
+
+Implement two primary roles.
+
+## Student
+
+Students can:
+
+* Open the feedback portal
+* Select academic details
+* Select course and faculty
+* Rate teaching parameters
+* Enter suggestions
+* Submit feedback
+* Receive a successful submission message
+
+Students do not require access to the administration dashboard.
+
+Student feedback should be anonymous by default.
+
+## Administrator / IQAC
+
+Admin users must log in securely.
+
+Admin users can:
+
+* View dashboard
+* Manage academic years
+* Manage departments
+* Manage programmes
+* Manage semesters
+* Manage faculty
+* Manage courses
+* Map faculty to courses
+* View feedback
+* Analyze results
+* Filter reports
+* View suggestions
+* Export/print reports
+* Configure institution settings
+
+All `/admin/*` pages must be protected.
+
+---
+
+# 4. STUDENT FEEDBACK PAGE
+
+Route:
+
+`/feedback`
+
+Create a professional college feedback form.
+
+At the top display:
+
+* Institution Logo
+* Institution Name
+* Student Feedback Form
+* Teaching–Learning Process
+
+Display a short notice:
+
+“Your feedback is confidential and will be used only for improving the quality of teaching and learning.”
+
+---
+
+# 5. ACADEMIC INFORMATION
+
+Create fields for:
+
+* Academic Year
+* Semester
+* Department
+* Programme
+* Course Code
+* Course Title
+* Faculty Name
+
+Use dropdowns wherever possible.
+
+Implement dependent dropdowns.
+
+Example:
+
+Department selected
+→ Show programmes belonging to that department.
+
+Semester selected
+→ Show courses available for that semester.
+
+Course selected
+→ Automatically identify/show faculty assigned to the course.
+
+All master data must come from the database rather than being hardcoded.
+
+---
+
+# 6. RATING SCALE
+
+Display the rating scale clearly.
+
+| Score | Rating    |
+| ----- | --------- |
+| 5     | Excellent |
+| 4     | Very Good |
+| 3     | Good      |
+| 2     | Fair      |
+| 1     | Poor      |
+
+Use large accessible clickable rating buttons.
+
+Example:
+
+`1  2  3  4  5`
+
+When the user selects a rating, visually highlight it.
+
+---
+
+# 7. FEEDBACK QUESTIONS
+
+Create the following 15 evaluation criteria.
+
+### Q1
+
+Faculty comes to class regularly and punctually.
+
+### Q2
+
+Faculty demonstrates thorough subject knowledge and command over the course.
+
+### Q3
+
+Concepts are explained clearly and systematically.
+
+### Q4
+
+Course outcomes and objectives are explained clearly.
+
+### Q5
+
+Teaching methodology is effective.
+
+### Q6
+
+Faculty effectively uses ICT tools such as PPT, videos, smart boards, simulations and LMS.
+
+### Q7
+
+Faculty encourages student participation and interaction.
+
+### Q8
+
+Faculty explains concepts using real-life and industry examples.
+
+### Q9
+
+Faculty completes the syllabus according to the academic schedule.
+
+### Q10
+
+Faculty conducts quizzes, assignments and tutorials regularly.
+
+### Q11
+
+Faculty provides timely and constructive feedback on assignments and tests.
+
+### Q12
+
+Internal assessment is fair and transparent.
+
+### Q13
+
+Faculty is available for academic guidance outside regular class hours.
+
+### Q14
+
+Faculty motivates students toward higher-order thinking and problem solving.
+
+### Q15
+
+Overall effectiveness of teaching.
+
+Every question is mandatory.
+
+Do not allow form submission until all 15 questions have been answered.
+
+---
+
+# 8. STUDENT SUGGESTIONS
+
+After the rating questions, provide three text areas.
+
+### Question 1
+
+“What did you like most about this course/faculty?”
+
+### Question 2
+
+“What improvements would you suggest?”
+
+### Question 3
+
+“Any additional comments?”
+
+Suggestions may be optional.
+
+Add reasonable character limits and display remaining character count.
+
+---
+
+# 9. FEEDBACK SUBMISSION
+
+Provide a prominent:
+
+**Submit Feedback**
+
+button.
+
+Before submission:
+
+* Validate academic details
+* Validate all 15 ratings
+* Prevent accidental duplicate clicks
+* Show loading indicator
+
+After successful submission show:
+
+**Feedback Submitted Successfully**
+
+“Thank you for your valuable feedback. Your response will help improve the teaching–learning process.”
+
+Provide a button:
+
+**Submit Another Feedback**
+
+---
+
+# 10. SCORE CALCULATION
+
+There are 15 questions.
+
+Each question has a maximum score of 5.
+
+Therefore:
+
+Maximum score = 75.
+
+Calculate:
+
+`Total Score = Q1 + Q2 + ... + Q15`
+
+Calculate percentage:
+
+`Percentage = (Total Score / 75) × 100`
+
+Do not rely only on client-side calculations for official analytics. The database/reporting logic should be capable of recalculating results from stored ratings.
+
+---
+
+# 11. GRADING SYSTEM
+
+Implement:
+
+| Total    | Grade | Performance       |
+| -------- | ----- | ----------------- |
+| 68–75    | A+    | Outstanding       |
+| 60–67    | A     | Excellent         |
+| 52–59    | B+    | Very Good         |
+| 45–51    | B     | Good              |
+| 37–44    | C     | Satisfactory      |
+| Below 37 | D     | Needs Improvement |
+
+Also provide percentage-based IQAC interpretation:
+
+* 90–100% → Excellent Performance
+* 80–89.99% → Very Good
+* 70–79.99% → Good
+* 60–69.99% → Satisfactory
+* Below 60% → Improvement Required
+
+Keep **Grade/Performance** and **IQAC Interpretation** as separate fields so the two reporting systems are not confused.
+
+---
+
+# 12. ADMIN LOGIN
+
+Route:
+
+`/admin/login`
+
+Create a modern login page containing:
+
+* Institution logo
+* EduFeedback
+* Email
+* Password
+* Show/Hide Password
+* Remember Me
+* Login button
+
+Use Supabase Authentication.
+
+Never store plain-text passwords.
+
+After successful login redirect to:
+
+`/admin/dashboard`
+
+Unauthorized users attempting to access `/admin/*` must be redirected to `/admin/login`.
+
+---
+
+# 13. ADMIN LAYOUT
+
+Create a responsive sidebar.
+
+Navigation:
+
+* Dashboard
+* Feedback Analytics
+* Faculty Performance
+* Department Performance
+* Feedback Responses
+* Reports
+* Academic Years
+* Departments
+* Programmes
+* Faculty
+* Courses
+* Faculty-Course Mapping
+* Settings
+* Logout
+
+On mobile use a collapsible navigation drawer.
+
+---
+
+# 14. DASHBOARD
+
+Route:
+
+`/admin/dashboard`
+
+Display KPI cards:
+
+### Total Responses
+
+Total feedback submissions.
+
+### Overall Average
+
+Average feedback percentage.
+
+### Faculty Evaluated
+
+Number of faculty who received feedback.
+
+### Courses Evaluated
+
+Number of courses evaluated.
+
+### Departments
+
+Active departments.
+
+### Improvement Required
+
+Number of faculty/course evaluations currently below the configured performance threshold.
+
+---
+
+# 15. DASHBOARD CHARTS
+
+Create responsive charts for:
+
+### Faculty Performance
+
+Bar chart showing faculty average percentage.
+
+### Department Performance
+
+Bar/column chart showing department average.
+
+### Grade Distribution
+
+Donut/pie chart:
+
+* A+
+* A
+* B+
+* B
+* C
+* D
+
+### Question-wise Analysis
+
+Display average rating for Q1–Q15.
+
+### Feedback Trend
+
+Line chart showing feedback volume and/or average performance over time.
+
+Charts must update based on selected filters.
+
+---
+
+# 16. GLOBAL DASHBOARD FILTERS
+
+Provide filters for:
+
+* Academic Year
+* Department
+* Programme
+* Semester
+* Course
+* Faculty
+* Date Range
+
+Include:
+
+**Apply Filters**
+
+and
+
+**Reset Filters**
+
+Filtered values must update dashboard cards, charts and reports consistently.
+
+---
+
+# 17. FACULTY PERFORMANCE PAGE
+
+Route:
+
+`/admin/faculty-performance`
+
+Display a searchable table.
+
+Columns:
+
+* Faculty Name
+* Department
+* Courses Evaluated
+* Number of Responses
+* Average Rating / 5
+* Average Percentage
+* Grade
+* Performance
+* View Details
+
+Allow sorting by performance and response count.
+
+---
+
+# 18. FACULTY DETAILS
+
+Route example:
+
+`/admin/faculty/:id`
+
+Display:
+
+* Faculty Name
+* Faculty ID
+* Department
+* Designation
+* Courses
+* Total Responses
+* Average Score
+* Average Percentage
+* Grade
+* Performance
+
+Display Q1–Q15 average ratings.
+
+Example:
+
+Q1 → 4.6
+Q2 → 4.4
+Q3 → 4.7
+
+Add charts showing strengths and areas requiring improvement.
+
+Display anonymous student suggestions separately:
+
+### Positive Feedback
+
+### Improvement Suggestions
+
+### Additional Comments
+
+Do not expose student identity.
+
+---
+
+# 19. DEPARTMENT PERFORMANCE
+
+Route:
+
+`/admin/department-performance`
+
+Display department cards/table containing:
+
+* Department
+* Faculty Count
+* Courses Evaluated
+* Feedback Responses
+* Average Rating
+* Percentage
+* Performance
+
+Allow clicking a department to view detailed faculty/course performance.
+
+---
+
+# 20. FEEDBACK RESPONSES
+
+Route:
+
+`/admin/responses`
+
+Display submitted feedback records.
+
+Columns:
+
+* Date
+* Academic Year
+* Department
+* Programme
+* Semester
+* Course
+* Faculty
+* Total Score
+* Percentage
+* Grade
+
+Do not show student identity when anonymous feedback mode is enabled.
+
+Provide pagination, search, filtering and sorting.
+
+---
+
+# 21. REPORTS PAGE
+
+Route:
+
+`/admin/reports`
+
+Allow admin to generate reports using:
+
+* Academic Year
+* Department
+* Programme
+* Semester
+* Faculty
+* Course
+* Date Range
+
+Display:
+
+* Number of responses
+* Average rating
+* Average percentage
+* Grade
+* Performance
+* IQAC interpretation
+* Question-wise average
+* Suggestions summary
+
+Provide:
+
+**Print Report**
+
+and design the page so it can be saved as PDF using the browser's print functionality.
+
+Also provide CSV export where practical.
+
+---
+
+# 22. PRINTABLE REPORT FORMAT
+
+Report header:
+
+Institution Logo
+
+Institution Name
+
+**STUDENT FEEDBACK ANALYSIS REPORT**
+
+Teaching–Learning Process
+
+Then display:
+
+* Academic Year
+* Department
+* Programme
+* Semester
+* Faculty
+* Course
+* Number of Responses
+
+Then:
+
+### Overall Performance
+
+* Average Score
+* Average Percentage
+* Grade
+* Performance
+* IQAC Interpretation
+
+Then display a table:
+
+| S.No | Evaluation Criteria | Average Rating |
+| ---- | ------------------- | -------------- |
+
+Include all 15 criteria.
+
+Then include:
+
+### Student Suggestions
+
+* Positive Feedback
+* Suggested Improvements
+* Additional Comments
+
+Add generated date and appropriate signature placeholders if enabled in settings.
+
+Use print-specific CSS so navigation/sidebar/buttons do not appear in printed reports.
+
+---
+
+# 23. ACADEMIC YEAR MANAGEMENT
+
+Route:
+
+`/admin/academic-years`
+
+Admin can:
+
+* Add academic year
+* Edit academic year
+* Activate/deactivate year
+* Mark one year as current
+
+Example:
+
+2026–2027
+
+---
+
+# 24. DEPARTMENT MANAGEMENT
+
+Route:
+
+`/admin/departments`
+
+Fields:
+
+* Department Code
+* Department Name
+* Status
+
+Actions:
+
+* Add
+* Edit
+* Activate/Deactivate
+
+Prevent deletion where historical feedback depends on the department; prefer soft deletion/status changes.
+
+---
+
+# 25. PROGRAMME MANAGEMENT
+
+Fields:
+
+* Programme Code
+* Programme Name
+* Department
+* Number of Semesters
+* Status
+
+Example:
+
+Programme Code: BE-CSE
+
+Programme Name:
+
+Bachelor of Engineering – Computer Science and Engineering
+
+---
+
+# 26. FACULTY MANAGEMENT
+
+Route:
+
+`/admin/faculty`
+
+Fields:
+
+* Faculty ID
+* Faculty Name
+* Email
+* Department
+* Designation
+* Status
+
+Functions:
+
+* Add
+* Edit
+* Search
+* Filter
+* Activate/Deactivate
+
+---
+
+# 27. COURSE MANAGEMENT
+
+Route:
+
+`/admin/courses`
+
+Fields:
+
+* Course Code
+* Course Title
+* Department
+* Programme
+* Semester
+* Academic Year
+* Status
+
+Allow:
+
+* Add
+* Edit
+* Search
+* Filter
+* Activate/Deactivate
+
+---
+
+# 28. FACULTY-COURSE MAPPING
+
+Create a mapping table between:
+
+* Academic Year
+* Department
+* Programme
+* Semester
+* Course
+* Faculty
+
+This is important because the same course may be handled by different faculty members in different academic years or sections.
+
+Optionally support a **Section** field so mappings can distinguish classes such as A/B/C.
+
+The student form must load valid faculty/course combinations from this mapping table.
+
+---
+
+# 29. DATABASE DESIGN
+
+Create appropriate Supabase/PostgreSQL tables.
+
+Suggested tables:
+
+### profiles
+
+* id
+* user_id
+* full_name
+* role
+* created_at
+
+### academic_years
+
+* id
+* year_name
+* is_current
+* status
+* created_at
+
+### departments
+
+* id
+* department_code
+* department_name
+* status
+* created_at
+
+### programmes
+
+* id
+* programme_code
+* programme_name
+* department_id
+* semesters_count
+* status
+* created_at
+
+### faculty
+
+* id
+* faculty_code
+* faculty_name
+* email
+* department_id
+* designation
+* status
+* created_at
+
+### courses
+
+* id
+* course_code
+* course_title
+* department_id
+* programme_id
+* semester
+* status
+* created_at
+
+### faculty_course_mappings
+
+* id
+* academic_year_id
+* faculty_id
+* course_id
+* programme_id
+* semester
+* section
+* status
+* created_at
+
+### feedback
+
+* id
+* academic_year_id
+* department_id
+* programme_id
+* semester
+* course_id
+* faculty_id
+* mapping_id
+* suggestion_positive
+* suggestion_improvement
+* additional_comments
+* submitted_at
+
+### feedback_ratings
+
+* id
+* feedback_id
+* question_number
+* rating
+
+Store one row per question rating.
+
+This normalized design makes question-level analysis easier.
+
+---
+
+# 30. FEEDBACK QUESTIONS TABLE
+
+For greater flexibility, create:
+
+### feedback_questions
+
+Fields:
+
+* id
+* question_number
+* question_text
+* category
+* is_active
+* display_order
+
+Insert the 15 default questions.
+
+This allows administrators/developers to change questions later without redesigning the database.
+
+A feedback rating should preferably reference `question_id` rather than relying only on the question number.
+
+---
+
+# 31. DATA RELATIONSHIPS
+
+Use proper foreign keys.
+
+Example:
+
+Department
+
+↓
+
+Programme
+
+↓
+
+Course
+
+↓
+
+Faculty-Course Mapping
+
+↓
+
+Feedback
+
+↓
+
+Feedback Ratings
+
+Do not duplicate unnecessary text values when a foreign-key relationship can be used.
+
+---
+
+# 32. SECURITY
+
+Implement Supabase Row Level Security.
+
+Admin users may:
+
+* Manage master data
+* Read feedback
+* View analytics
+* Generate reports
+
+Public/student users may:
+
+* Read only the active academic information required to populate the feedback form
+* Submit valid feedback
+* Submit associated ratings
+
+Public users must NOT be able to:
+
+* Read all feedback responses
+* Read student comments
+* Modify existing feedback
+* Delete feedback
+* Access admin data
+* Access admin dashboard APIs
+
+Do not expose the Supabase service-role key in frontend code.
+
+Use only safe client-side environment variables in the browser.
+
+---
+
+# 33. DUPLICATE/SPAM PROTECTION
+
+Design basic protection against repeated or automated submissions.
+
+At minimum:
+
+* Disable the submit button while submission is processing.
+* Validate all values server-side/database-side where possible.
+* Verify that selected course/faculty mapping is active.
+* Add rate limiting or server-side submission protection for production deployment.
+
+If the institution later wants “one feedback per student per course,” implement authenticated or token-based submission without exposing student identity in faculty reports.
+
+Do not pretend browser localStorage alone provides secure duplicate prevention.
+
+---
+
+# 34. DATABASE TRANSACTION SAFETY
+
+A feedback submission consists of:
+
+1. Feedback parent record
+2. 15 feedback rating records
+
+Ensure partial submissions do not produce corrupted analytics.
+
+Prefer a secure PostgreSQL function/RPC or backend endpoint that validates the request and inserts the feedback plus all ratings atomically in one transaction.
+
+---
+
+# 35. ANALYTICS LOGIC
+
+Calculate:
+
+### Average Question Rating
+
+`Sum of ratings for question / number of responses`
+
+### Faculty Average
+
+Calculate using all valid ratings matching the selected filters.
+
+### Overall Average Rating
+
+`Total Rating Points / Total Number of Rating Answers`
+
+### Percentage
+
+`(Average Rating / 5) × 100`
+
+For an individual response:
+
+`(Total Score / 75) × 100`
+
+Round displayed values to two decimal places.
+
+Never average already-rounded percentages when raw rating data is available.
+
+---
+
+# 36. PERFORMANCE COLORS
+
+Use consistent visual status styling.
+
+* Outstanding / Excellent → positive status
+* Very Good / Good → informative status
+* Satisfactory → warning status
+* Needs Improvement → critical status
+
+Do not rely on color alone. Always display text labels/icons for accessibility.
+
+---
+
+# 37. UI DESIGN
+
+Create a clean, professional academic dashboard.
+
+Design direction:
+
+* Modern SaaS dashboard
+* Professional college/institution appearance
+* White/light backgrounds
+* Strong primary institutional color
+* Rounded cards
+* Subtle shadows
+* Clear typography
+* Consistent spacing
+* Accessible contrast
+* Responsive layout
+* Professional tables
+* Minimal animations
+
+Avoid excessive gradients, neon effects or gaming-style design.
+
+---
+
+# 38. STUDENT FORM UX
+
+Use a progress indicator.
+
+Example:
+
+Academic Details
+
+↓
+
+Teaching Evaluation
+
+↓
+
+Suggestions
+
+↓
+
+Review & Submit
+
+Optionally display:
+
+`Step 2 of 4`
+
+For mobile devices, rating buttons must be large enough to tap easily.
+
+Preserve entered values while moving between steps.
+
+---
+
+# 39. REVIEW PAGE
+
+Before final submission, optionally display:
+
+**Review Your Feedback**
+
+Show:
+
+* Academic details
+* Course
+* Faculty
+* Number of questions answered
+* Suggestions completed
+
+Do not necessarily show a calculated “grade” to the student before submission, because the form is intended to evaluate teaching rather than encourage students to target a specific score.
+
+Provide:
+
+**Edit**
+
+and
+
+**Confirm & Submit**
+
+---
+
+# 40. LOADING STATES
+
+Use skeleton loaders or progress indicators when loading:
+
+* Dashboard
+* Faculty
+* Courses
+* Reports
+* Analytics
+
+Do not leave blank screens.
+
+---
+
+# 41. EMPTY STATES
+
+Example:
+
+“No feedback records found for the selected filters.”
+
+Provide useful actions such as:
+
+**Reset Filters**
+
+---
+
+# 42. ERROR HANDLING
+
+Create user-friendly error messages.
+
+Example:
+
+“Unable to submit feedback. Please check your connection and try again.”
+
+Do not expose raw database errors or sensitive technical details to normal users.
+
+Log technical errors appropriately for development/administration.
+
+---
+
+# 43. CONFIRMATION DIALOGS
+
+Before important administrative operations show confirmation dialogs.
+
+Examples:
+
+Deactivate Faculty?
+
+Deactivate Course?
+
+Delete allowed record?
+
+Use soft deletion/status changes for records referenced by historical feedback.
+
+---
+
+# 44. SETTINGS
+
+Route:
+
+`/admin/settings`
+
+Allow configuration of:
+
+* Institution Name
+* Institution Short Name
+* Institution Logo
+* Address
+* Report Header
+* Current Academic Year
+* Feedback Form Status
+* Anonymous Feedback Mode
+* Report Footer
+* Principal Name
+* IQAC Coordinator Name
+
+Provide:
+
+**Open Feedback Form**
+
+and
+
+**Close Feedback Form**
+
+When closed, students should see:
+
+“Student feedback collection is currently closed.”
+
+---
+
+# 45. RESPONSIVE DESIGN
+
+Desktop:
+
+Sidebar + main dashboard.
+
+Tablet:
+
+Collapsible sidebar.
+
+Mobile:
+
+Top navigation/menu drawer.
+
+Tables should either scroll horizontally or switch to cards where appropriate.
+
+The student feedback form must be especially optimized for smartphones.
+
+---
+
+# 46. ACCESSIBILITY
+
+Use:
+
+* Semantic HTML
+* Proper labels
+* Keyboard navigation
+* Visible focus states
+* Accessible form errors
+* ARIA attributes where appropriate
+* Sufficient contrast
+* Text labels in addition to status colors
+
+---
+
+# 47. SEARCH AND PAGINATION
+
+Large admin tables should support:
+
+* Search
+* Pagination
+* Sorting
+* Filtering
+
+Examples:
+
+Faculty search
+
+Course search
+
+Feedback response filtering
+
+---
+
+# 48. DEMO DATA
+
+Seed the project with demo data for development.
+
+Example academic year:
+
+2026–2027
+
+Example departments:
+
+* CSE
+* AI & DS
+* ECE
+* EEE
+* Mechanical
+* Civil
+
+Create several demo faculty and courses.
+
+Create sample feedback only for development/demo mode.
+
+Clearly separate demo seed data from production data.
+
+---
+
+# 49. PROJECT STRUCTURE
+
+Use a maintainable structure similar to:
+
+src/
+
+* components/
+* pages/
+* layouts/
+* hooks/
+* services/
+* utils/
+* lib/
+* types/
+* contexts/
+* assets/
+
+Components can include:
+
+* Sidebar
+* Header
+* StatCard
+* RatingInput
+* FeedbackQuestion
+* FilterBar
+* DataTable
+* PerformanceBadge
+* EmptyState
+* LoadingState
+* ConfirmDialog
+* ReportHeader
+
+Avoid placing the entire application inside one large component.
+
+---
+
+# 50. ROUTES
+
+Create routes similar to:
+
+`/`
+
+`/feedback`
+
+`/feedback/success`
+
+`/admin/login`
+
+`/admin/dashboard`
+
+`/admin/analytics`
+
+`/admin/faculty-performance`
+
+`/admin/faculty/:id`
+
+`/admin/department-performance`
+
+`/admin/responses`
+
+`/admin/reports`
+
+`/admin/academic-years`
+
+`/admin/departments`
+
+`/admin/programmes`
+
+`/admin/faculty`
+
+`/admin/courses`
+
+`/admin/mappings`
+
+`/admin/settings`
+
+Use protected routes for all administration pages.
+
+---
+
+# 51. LANDING PAGE
+
+Route:
+
+`/`
+
+Create a simple professional landing page.
+
+Header:
+
+Institution Logo
+
+EduFeedback
+
+Navigation:
+
+* Home
+* Give Feedback
+* Admin Login
+
+Hero:
+
+**Your Feedback Shapes Better Learning**
+
+Description:
+
+“A secure and structured student feedback system designed to improve teaching quality and strengthen the teaching–learning process.”
+
+Primary button:
+
+**Give Feedback**
+
+Secondary button:
+
+**Admin Login**
+
+Do not expose analytics publicly.
+
+---
+
+# 52. DATABASE SETUP
+
+Generate the required SQL migration/setup scripts for Supabase.
+
+Include:
+
+* Tables
+* Primary keys
+* Foreign keys
+* Indexes
+* Constraints
+* Default values
+* `created_at` timestamps
+* RLS policies
+* Appropriate database functions/views for analytics where useful
+
+Add indexes to frequently filtered foreign keys and dates.
+
+---
+
+# 53. DATA VALIDATION
+
+Validate both frontend input and database constraints.
+
+Ratings must only accept integers:
+
+1, 2, 3, 4, 5.
+
+Semester must be valid.
+
+Feedback must reference valid academic entities.
+
+A submitted course/faculty mapping must exist and be active.
+
+Prevent invalid relationships from being submitted by manually modifying browser requests.
+
+---
+
+# 54. REPORTING REQUIREMENTS
+
+The reporting system should help academic administrators answer:
+
+* Which faculty has the highest average?
+* Which faculty requires improvement?
+* Which teaching parameter has the lowest average?
+* Which department performs best?
+* How many feedback responses were collected?
+* Which courses have insufficient response counts?
+* What are the most common student improvement suggestions?
+
+Do not automatically treat a very small response sample as equally reliable as a large one. Always show the number of responses beside performance results.
+
+---
+
+# 55. OPTIONAL ADVANCED FEATURE – COMMENT ANALYSIS
+
+Design the architecture so AI-based suggestion analysis can be added later.
+
+Possible future functionality:
+
+* Summarize anonymous suggestions
+* Identify recurring themes
+* Categorize comments
+* Highlight common strengths
+* Highlight improvement areas
+
+Do not require AI for the first working version.
+
+---
+
+# 56. AUDIT AND ADMIN SAFETY
+
+For important administration actions, optionally maintain an audit log.
+
+Possible fields:
+
+* Admin user
+* Action
+* Entity type
+* Entity ID
+* Timestamp
+
+Examples:
+
+Faculty Updated
+
+Course Deactivated
+
+Feedback Collection Closed
+
+Do not log passwords or sensitive authentication tokens.
+
+---
+
+# 57. DATA INTEGRITY
+
+Historical feedback must remain valid even when:
+
+* Faculty becomes inactive
+* Course becomes inactive
+* Academic year changes
+* Department information is updated
+
+Never cascade-delete important historical feedback accidentally.
+
+Use appropriate foreign-key deletion rules.
+
+---
+
+# 58. FINAL APPLICATION FLOW
+
+Student:
+
+Landing Page
+
+→ Give Feedback
+
+→ Select Academic Details
+
+→ Select Course/Faculty
+
+→ Complete 15 Ratings
+
+→ Enter Suggestions
+
+→ Review
+
+→ Submit
+
+→ Success
+
+Admin:
+
+Admin Login
+
+→ Dashboard
+
+→ Apply Academic Filters
+
+→ View Analytics
+
+→ Faculty Performance
+
+→ Department Performance
+
+→ Read Anonymous Suggestions
+
+→ Generate Report
+
+→ Print/Export
+
+---
+
+# 59. DEVELOPMENT ORDER
+
+Build the application in phases.
+
+### Phase 1 – UI Foundation
+
+Create:
+
+* Landing page
+* Student feedback form
+* Admin login
+* Dashboard layout
+* Responsive navigation
+
+### Phase 2 – Database
+
+Create Supabase schema, relationships, seed data and security policies.
+
+### Phase 3 – Student Feedback
+
+Connect dropdowns to database.
+
+Implement dependent selection.
+
+Implement rating system.
+
+Implement atomic feedback submission.
+
+### Phase 4 – Administration
+
+Build CRUD management for:
+
+* Academic Years
+* Departments
+* Programmes
+* Faculty
+* Courses
+* Faculty-Course Mapping
+
+### Phase 5 – Analytics
+
+Implement:
+
+* KPI cards
+* Faculty analytics
+* Department analytics
+* Question-wise analytics
+* Grade distribution
+* Trends
+
+### Phase 6 – Reporting
+
+Implement:
+
+* Filters
+* Detailed reports
+* Print layout
+* CSV export
+
+### Phase 7 – Security & Testing
+
+Test:
+
+* Authentication
+* Protected routes
+* RLS
+* Input validation
+* Invalid IDs
+* Duplicate submissions
+* Mobile responsiveness
+* Error states
+* Empty states
+* Accessibility
+
+---
+
+# 60. FINAL REQUIREMENTS
+
+The final application must be:
+
+* Fully responsive
+* Database connected
+* Securely authenticated for admins
+* Anonymous for students by default
+* Easy for students to use
+* Easy for administrators to manage
+* Suitable for institutional/IQAC reporting
+* Modular and maintainable
+* Ready for deployment
+
+Do not create only static mockups.
+
+All buttons, forms, filters, CRUD actions, calculations and dashboard components must function.
+
+Do not hardcode dashboard statistics.
+
+Read statistics from actual database records.
+
+Do not use placeholder charts after database integration.
+
+Do not expose secret keys.
+
+Do not store passwords manually.
+
+Do not expose anonymous student feedback identities to faculty.
+
+---
+
+# EXPECTED FINAL OUTPUT
+
+Generate:
+
+1. Complete frontend application.
+2. Supabase database schema.
+3. SQL migration/setup script.
+4. Supabase RLS policies.
+5. Authentication implementation.
+6. Student feedback workflow.
+7. Admin dashboard.
+8. Master-data CRUD modules.
+9. Faculty-course mapping.
+10. Analytics calculations.
+11. Charts.
+12. Filtering system.
+13. Faculty performance reports.
+14. Department reports.
+15. Printable report layout.
+16. CSV export where appropriate.
+17. Responsive mobile interface.
+18. Loading/error/empty states.
+19. Demo seed data.
+20. README/setup instructions.
+21. `.env.example` containing variable names only, never real secrets.
+
+The application should run successfully after installing dependencies, configuring Supabase environment variables, executing the supplied database migrations, and starting the development server.
+
+Build this as a polished, practical **Student Feedback & Teaching Evaluation Management System** suitable for a college environment.
