@@ -16,7 +16,9 @@ import {
   ImplementationPlanRow,
   DatabaseSchemaRow,
   GradingStandardRow,
-  DatasetTargetKey
+  DatasetTargetKey,
+  UserRoleAccess,
+  PageViewAnalytics
 } from '../types';
 import {
   INITIAL_SETTINGS,
@@ -48,7 +50,9 @@ const STORAGE_KEYS = {
   SUBMISSIONS: 'edu_submissions',
   IMPLEMENTATION_PLAN: 'edu_implementation_plan',
   DATABASE_SCHEMA: 'edu_database_schema',
-  GRADING_STANDARDS: 'edu_grading_standards'
+  GRADING_STANDARDS: 'edu_grading_standards',
+  USER_ROLES: 'edu_user_roles',
+  PAGE_VIEWS: 'edu_page_views'
 };
 
 // Robust UUID generator compatible with Supabase PostgreSQL UUID primary keys
@@ -1085,5 +1089,96 @@ export const dbService = {
       default:
         return 0;
     }
+  },
+
+  // User Access Roles & Page Views
+  async getUserRoles(): Promise<UserRoleAccess[]> {
+    return getStored<UserRoleAccess[]>(STORAGE_KEYS.USER_ROLES, [
+      {
+        role_id: 'role-student',
+        role_name: 'Student (Anonymous Evaluator)',
+        description: 'Enrolled students submitting semester teaching feedback across academic courses.',
+        target_users: 'All UG/PG Students',
+        can_give_feedback: true,
+        can_view_analytics: false,
+        can_manage_faculty: false,
+        can_feed_data: false,
+        can_export_reports: false,
+        can_manage_settings: false,
+        active_sessions_count: 342
+      },
+      {
+        role_id: 'role-faculty',
+        role_name: 'Teaching Faculty',
+        description: 'Subject teachers and Assistant/Associate Professors viewing self-performance metrics.',
+        target_users: 'Department Faculty',
+        can_give_feedback: false,
+        can_view_analytics: true,
+        can_manage_faculty: false,
+        can_feed_data: false,
+        can_export_reports: true,
+        can_manage_settings: false,
+        active_sessions_count: 58
+      },
+      {
+        role_id: 'role-iqac',
+        role_name: 'IQAC Coordinator / HOD',
+        description: 'Department Heads & Quality Assurance Coordinators managing evaluation workflows.',
+        target_users: 'HODs & Quality Team',
+        can_give_feedback: true,
+        can_view_analytics: true,
+        can_manage_faculty: true,
+        can_feed_data: true,
+        can_export_reports: true,
+        can_manage_settings: false,
+        active_sessions_count: 14
+      },
+      {
+        role_id: 'role-admin',
+        role_name: 'System Administrator (Principal)',
+        description: 'Full institutional administrative access, data feeding, settings & security controls.',
+        target_users: 'Principal & Tech Admin',
+        can_give_feedback: true,
+        can_view_analytics: true,
+        can_manage_faculty: true,
+        can_feed_data: true,
+        can_export_reports: true,
+        can_manage_settings: true,
+        active_sessions_count: 4
+      }
+    ]);
+  },
+
+  async saveUserRole(role: UserRoleAccess): Promise<UserRoleAccess[]> {
+    const list = await this.getUserRoles();
+    const updated = list.map(item => item.role_id === role.role_id ? role : item);
+    setStored(STORAGE_KEYS.USER_ROLES, updated);
+    return updated;
+  },
+
+  async getPageViewAnalytics(): Promise<PageViewAnalytics[]> {
+    return getStored<PageViewAnalytics[]>(STORAGE_KEYS.PAGE_VIEWS, [
+      { id: 'pv-1', page_title: 'Student Evaluation Wizard', route_path: '/feedback', access_role: 'Student', desktop_views: 1240, mobile_views: 3890, avg_time_seconds: 145, status: 'active' },
+      { id: 'pv-2', page_title: 'IQAC Admin Dashboard', route_path: '/admin/dashboard', access_role: 'Administrator', desktop_views: 890, mobile_views: 420, avg_time_seconds: 310, status: 'active' },
+      { id: 'pv-3', page_title: 'Faculty Performance Directory', route_path: '/admin/faculty-performance', access_role: 'Faculty / HOD', desktop_views: 650, mobile_views: 280, avg_time_seconds: 220, status: 'active' },
+      { id: 'pv-4', page_title: 'Department Performance Summary', route_path: '/admin/department-performance', access_role: 'HOD / IQAC', desktop_views: 520, mobile_views: 190, avg_time_seconds: 195, status: 'active' },
+      { id: 'pv-5', page_title: 'Bulk Data Feed Hub (Serial Entry)', route_path: '/admin/feed-data', access_role: 'Administrator', desktop_views: 480, mobile_views: 110, avg_time_seconds: 400, status: 'active' },
+      { id: 'pv-6', page_title: 'Official IQAC Printable Reports', route_path: '/admin/reports', access_role: 'Administrator / HOD', desktop_views: 740, mobile_views: 160, avg_time_seconds: 260, status: 'active' }
+    ]);
+  },
+
+  async recordPageView(routePath: string, isMobile: boolean = false): Promise<void> {
+    const list = await this.getPageViewAnalytics();
+    const updated = list.map(item => {
+      if (item.route_path === routePath) {
+        return {
+          ...item,
+          desktop_views: isMobile ? item.desktop_views : item.desktop_views + 1,
+          mobile_views: isMobile ? item.mobile_views + 1 : item.mobile_views
+        };
+      }
+      return item;
+    });
+    setStored(STORAGE_KEYS.PAGE_VIEWS, updated);
   }
 };

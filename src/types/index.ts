@@ -214,3 +214,29 @@ export type DatasetTargetKey =
   | 'courses'
   | 'mappings';
 
+export interface UserRoleAccess {
+  role_id: string;
+  role_name: string;
+  description: string;
+  target_users: string;
+  can_give_feedback: boolean;
+  can_view_analytics: boolean;
+  can_manage_faculty: boolean;
+  can_feed_data: boolean;
+  can_export_reports: boolean;
+  can_manage_settings: boolean;
+  active_sessions_count: number;
+}
+
+export interface PageViewAnalytics {
+  id: string;
+  page_title: string;
+  route_path: string;
+  access_role: string;
+  desktop_views: number;
+  mobile_views: number;
+  avg_time_seconds: number;
+  status: 'active' | 'restricted';
+}
+
+
