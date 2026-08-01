@@ -52,24 +52,6 @@ export const Navbar: React.FC = () => {
               <MessageSquarePlus className="w-4 h-4" />
               <span>Give Feedback</span>
             </Link>
-
-            <Link
-              to={isAuthenticated ? "/admin/dashboard" : "/admin/login"}
-              className="flex items-center gap-1.5 px-3.5 py-2 text-sm font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 border border-slate-200 rounded-lg transition-all shadow-xs"
-              title="Admin Login & IQAC Portal"
-            >
-              {isAuthenticated ? (
-                <>
-                  <LayoutDashboard className="w-4 h-4 text-brand-600" />
-                  <span>Admin Dashboard</span>
-                </>
-              ) : (
-                <>
-                  <ShieldCheck className="w-4 h-4 text-brand-600" />
-                  <span>Admin Login</span>
-                </>
-              )}
-            </Link>
           </nav>
         </div>
       </div>
