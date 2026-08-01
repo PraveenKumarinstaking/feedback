@@ -80,9 +80,23 @@ export const ReportsPage: React.FC = () => {
     window.addEventListener('storage', handleRealtimeUpdate);
     window.addEventListener('edu_feedback_submitted', handleRealtimeUpdate);
 
+    let channel: BroadcastChannel | null = null;
+    if (typeof BroadcastChannel !== 'undefined') {
+      try {
+        channel = new BroadcastChannel('edu_feedback_channel');
+        channel.onmessage = () => handleRealtimeUpdate();
+      } catch (e) {}
+    }
+
+    const pollInterval = setInterval(() => {
+      loadReportData(filters);
+    }, 3000);
+
     return () => {
       window.removeEventListener('storage', handleRealtimeUpdate);
       window.removeEventListener('edu_feedback_submitted', handleRealtimeUpdate);
+      if (channel) channel.close();
+      clearInterval(pollInterval);
     };
   }, [filters]);
 

@@ -685,6 +685,14 @@ export const dbService = {
       window.dispatchEvent(new CustomEvent('edu_feedback_submitted'));
     }
 
+    if (typeof BroadcastChannel !== 'undefined') {
+      try {
+        const channel = new BroadcastChannel('edu_feedback_channel');
+        channel.postMessage({ type: 'NEW_SUBMISSION', timestamp: Date.now() });
+        channel.close();
+      } catch (e) {}
+    }
+
     return newSubmission;
   },
 
