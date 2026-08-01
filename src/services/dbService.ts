@@ -661,10 +661,10 @@ export const dbService = {
             semester: payload.semester,
             course_id: payload.course_id,
             faculty_id: payload.faculty_id,
-            mapping_id: payload.mapping_id,
-            suggestion_positive: payload.suggestion_positive,
-            suggestion_improvement: payload.suggestion_improvement,
-            additional_comments: payload.additional_comments
+            mapping_id: payload.mapping_id || null,
+            suggestion_positive: payload.suggestion_positive || null,
+            suggestion_improvement: payload.suggestion_improvement || null,
+            additional_comments: payload.additional_comments || null
           }).select().single();
 
           if (fbRow && !fbErr) {
