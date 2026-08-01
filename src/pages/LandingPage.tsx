@@ -45,6 +45,14 @@ export const LandingPage: React.FC = () => {
               <span>Give Feedback Now</span>
               <ArrowRight className="w-5 h-5" />
             </Link>
+
+            <Link
+              to="/admin/login"
+              className="w-full sm:w-auto px-7 py-4 text-base font-extrabold text-gray-800 bg-white hover:bg-gray-50 border border-gray-200 rounded-xl shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2"
+            >
+              <ShieldCheck className="w-5 h-5 text-brand-600" />
+              <span>Admin Portal Login</span>
+            </Link>
           </div>
 
           <p className="mt-4 text-xs text-gray-400">
