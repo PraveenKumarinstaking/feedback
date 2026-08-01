@@ -33,6 +33,7 @@ import {
   generateSeedSubmissions
 } from '../lib/mockData';
 import { calculateGrade, calculateIQACInterpretation, formatPercentage, formatRating } from '../utils/calculations';
+import { supabase, isSupabaseConfigured } from '../lib/supabase';
 
 // Local storage key constants
 const STORAGE_KEYS = {
@@ -50,11 +51,25 @@ const STORAGE_KEYS = {
   GRADING_STANDARDS: 'edu_grading_standards'
 };
 
+// Robust UUID generator compatible with Supabase PostgreSQL UUID primary keys
+function generateUUID(): string {
+  if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+    try {
+      return crypto.randomUUID();
+    } catch (e) {}
+  }
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+    const r = Math.random() * 16 | 0;
+    const v = c === 'x' ? r : (r & 0x3 | 0x8);
+    return v.toString(16);
+  });
+}
+
 // Initialize localStorage if empty or outdated
 function initializeLocalStorage() {
   let currentMappings = getStored<any[]>(STORAGE_KEYS.MAPPINGS, []);
   
-  // Clean out sample mappings map-1 through map-7 if present
+  // Clean out legacy sample mappings map-1 through map-7 if present
   if (currentMappings.some(m => /^map-[1-7]$/.test(m.id))) {
     currentMappings = currentMappings.filter(m => !/^map-[1-7]$/.test(m.id));
     localStorage.setItem(STORAGE_KEYS.MAPPINGS, JSON.stringify(currentMappings.length > 0 ? currentMappings : INITIAL_MAPPINGS));
@@ -123,6 +138,29 @@ function setStored<T>(key: string, data: T): void {
 export const dbService = {
   // Settings
   async getSettings(): Promise<InstitutionSettings> {
+    if (isSupabaseConfigured && supabase) {
+      try {
+        const { data, error } = await supabase.from('settings').select('*').limit(1).single();
+        if (data && !error) {
+          const mapped: InstitutionSettings = {
+            institution_name: data.institution_name,
+            institution_short_name: data.institution_short_name,
+            institution_logo: data.institution_logo,
+            address: data.address,
+            report_header: data.report_header,
+            feedback_form_open: data.feedback_form_open,
+            anonymous_mode: data.anonymous_mode,
+            report_footer: data.report_footer,
+            principal_name: data.principal_name,
+            iqac_coordinator_name: data.iqac_coordinator_name
+          };
+          setStored(STORAGE_KEYS.SETTINGS, mapped);
+          return mapped;
+        }
+      } catch (e) {
+        console.warn('Supabase settings fetch error, using local storage:', e);
+      }
+    }
     return getStored<InstitutionSettings>(STORAGE_KEYS.SETTINGS, INITIAL_SETTINGS);
   },
 
@@ -130,11 +168,33 @@ export const dbService = {
     const current = await this.getSettings();
     const updated = { ...current, ...settings };
     setStored(STORAGE_KEYS.SETTINGS, updated);
+
+    if (isSupabaseConfigured && supabase) {
+      try {
+        await supabase.from('settings').upsert({
+          id: '00000000-0000-0000-0000-000000000001',
+          ...updated
+        });
+      } catch (e) {
+        console.warn('Supabase settings update error:', e);
+      }
+    }
     return updated;
   },
 
   // Academic Years
   async getAcademicYears(): Promise<AcademicYear[]> {
+    if (isSupabaseConfigured && supabase) {
+      try {
+        const { data, error } = await supabase.from('academic_years').select('*').order('created_at', { ascending: false });
+        if (data && data.length > 0 && !error) {
+          setStored(STORAGE_KEYS.ACADEMIC_YEARS, data);
+          return data as AcademicYear[];
+        }
+      } catch (e) {
+        console.warn('Supabase academic years fetch error:', e);
+      }
+    }
     return getStored<AcademicYear[]>(STORAGE_KEYS.ACADEMIC_YEARS, INITIAL_ACADEMIC_YEARS);
   },
 
@@ -152,7 +212,7 @@ export const dbService = {
       setStored(STORAGE_KEYS.ACADEMIC_YEARS, updatedList);
     } else {
       updatedYear = {
-        id: `ay-${Date.now()}`,
+        id: generateUUID(),
         year_name: year.year_name || 'New Academic Year',
         is_current: year.is_current || false,
         status: year.status || 'active',
@@ -165,11 +225,31 @@ export const dbService = {
       newList.push(updatedYear);
       setStored(STORAGE_KEYS.ACADEMIC_YEARS, newList);
     }
+
+    if (isSupabaseConfigured && supabase) {
+      try {
+        await supabase.from('academic_years').upsert(updatedYear!);
+      } catch (e) {
+        console.warn('Supabase academic year save error:', e);
+      }
+    }
+
     return updatedYear!;
   },
 
   // Departments
   async getDepartments(): Promise<Department[]> {
+    if (isSupabaseConfigured && supabase) {
+      try {
+        const { data, error } = await supabase.from('departments').select('*').order('department_code', { ascending: true });
+        if (data && data.length > 0 && !error) {
+          setStored(STORAGE_KEYS.DEPARTMENTS, data);
+          return data as Department[];
+        }
+      } catch (e) {
+        console.warn('Supabase departments fetch error:', e);
+      }
+    }
     return getStored<Department[]>(STORAGE_KEYS.DEPARTMENTS, INITIAL_DEPARTMENTS);
   },
 
@@ -187,7 +267,7 @@ export const dbService = {
       setStored(STORAGE_KEYS.DEPARTMENTS, newList);
     } else {
       updatedDept = {
-        id: `dept-${Date.now()}`,
+        id: generateUUID(),
         department_code: dept.department_code || 'CODE',
         department_name: dept.department_name || 'New Department',
         status: dept.status || 'active',
@@ -196,11 +276,31 @@ export const dbService = {
       list.push(updatedDept);
       setStored(STORAGE_KEYS.DEPARTMENTS, list);
     }
+
+    if (isSupabaseConfigured && supabase) {
+      try {
+        await supabase.from('departments').upsert(updatedDept!);
+      } catch (e) {
+        console.warn('Supabase department save error:', e);
+      }
+    }
+
     return updatedDept!;
   },
 
   // Programmes
   async getProgrammes(): Promise<Programme[]> {
+    if (isSupabaseConfigured && supabase) {
+      try {
+        const { data, error } = await supabase.from('programmes').select('*').order('programme_code', { ascending: true });
+        if (data && data.length > 0 && !error) {
+          setStored(STORAGE_KEYS.PROGRAMMES, data);
+          return data as Programme[];
+        }
+      } catch (e) {
+        console.warn('Supabase programmes fetch error:', e);
+      }
+    }
     return getStored<Programme[]>(STORAGE_KEYS.PROGRAMMES, INITIAL_PROGRAMMES);
   },
 
@@ -218,7 +318,7 @@ export const dbService = {
       setStored(STORAGE_KEYS.PROGRAMMES, newList);
     } else {
       updatedProg = {
-        id: `prog-${Date.now()}`,
+        id: generateUUID(),
         programme_code: prog.programme_code || 'PROG',
         programme_name: prog.programme_name || 'New Programme',
         department_id: prog.department_id || '',
@@ -229,11 +329,31 @@ export const dbService = {
       list.push(updatedProg);
       setStored(STORAGE_KEYS.PROGRAMMES, list);
     }
+
+    if (isSupabaseConfigured && supabase) {
+      try {
+        await supabase.from('programmes').upsert(updatedProg!);
+      } catch (e) {
+        console.warn('Supabase programme save error:', e);
+      }
+    }
+
     return updatedProg!;
   },
 
   // Faculty
   async getFaculty(): Promise<Faculty[]> {
+    if (isSupabaseConfigured && supabase) {
+      try {
+        const { data, error } = await supabase.from('faculty').select('*').order('faculty_name', { ascending: true });
+        if (data && data.length > 0 && !error) {
+          setStored(STORAGE_KEYS.FACULTY, data);
+          return data as Faculty[];
+        }
+      } catch (e) {
+        console.warn('Supabase faculty fetch error:', e);
+      }
+    }
     return getStored<Faculty[]>(STORAGE_KEYS.FACULTY, INITIAL_FACULTY);
   },
 
@@ -251,7 +371,7 @@ export const dbService = {
       setStored(STORAGE_KEYS.FACULTY, newList);
     } else {
       updatedFac = {
-        id: `fac-${Date.now()}`,
+        id: generateUUID(),
         faculty_code: fac.faculty_code || `FAC-${Date.now().toString().slice(-3)}`,
         faculty_name: fac.faculty_name || 'New Faculty',
         email: fac.email || 'faculty@niet.edu',
@@ -263,11 +383,31 @@ export const dbService = {
       list.push(updatedFac);
       setStored(STORAGE_KEYS.FACULTY, list);
     }
+
+    if (isSupabaseConfigured && supabase) {
+      try {
+        await supabase.from('faculty').upsert(updatedFac!);
+      } catch (e) {
+        console.warn('Supabase faculty save error:', e);
+      }
+    }
+
     return updatedFac!;
   },
 
   // Courses
   async getCourses(): Promise<Course[]> {
+    if (isSupabaseConfigured && supabase) {
+      try {
+        const { data, error } = await supabase.from('courses').select('*').order('course_code', { ascending: true });
+        if (data && data.length > 0 && !error) {
+          setStored(STORAGE_KEYS.COURSES, data);
+          return data as Course[];
+        }
+      } catch (e) {
+        console.warn('Supabase courses fetch error:', e);
+      }
+    }
     return getStored<Course[]>(STORAGE_KEYS.COURSES, INITIAL_COURSES);
   },
 
@@ -285,7 +425,7 @@ export const dbService = {
       setStored(STORAGE_KEYS.COURSES, newList);
     } else {
       updatedCrs = {
-        id: `crs-${Date.now()}`,
+        id: generateUUID(),
         course_code: crs.course_code || 'CRS',
         course_title: crs.course_title || 'New Course',
         department_id: crs.department_id || '',
@@ -297,11 +437,31 @@ export const dbService = {
       list.push(updatedCrs);
       setStored(STORAGE_KEYS.COURSES, list);
     }
+
+    if (isSupabaseConfigured && supabase) {
+      try {
+        await supabase.from('courses').upsert(updatedCrs!);
+      } catch (e) {
+        console.warn('Supabase course save error:', e);
+      }
+    }
+
     return updatedCrs!;
   },
 
   // Faculty Course Mappings
   async getMappings(): Promise<FacultyCourseMapping[]> {
+    if (isSupabaseConfigured && supabase) {
+      try {
+        const { data, error } = await supabase.from('faculty_course_mappings').select('*');
+        if (data && data.length > 0 && !error) {
+          setStored(STORAGE_KEYS.MAPPINGS, data);
+          return data as FacultyCourseMapping[];
+        }
+      } catch (e) {
+        console.warn('Supabase mappings fetch error:', e);
+      }
+    }
     return getStored<FacultyCourseMapping[]>(STORAGE_KEYS.MAPPINGS, INITIAL_MAPPINGS);
   },
 
@@ -319,7 +479,7 @@ export const dbService = {
       setStored(STORAGE_KEYS.MAPPINGS, newList);
     } else {
       updatedMap = {
-        id: `map-${Date.now()}`,
+        id: generateUUID(),
         academic_year_id: mapItem.academic_year_id || '',
         faculty_id: mapItem.faculty_id || '',
         course_id: mapItem.course_id || '',
@@ -332,18 +492,86 @@ export const dbService = {
       list.push(updatedMap);
       setStored(STORAGE_KEYS.MAPPINGS, list);
     }
+
+    if (isSupabaseConfigured && supabase) {
+      try {
+        await supabase.from('faculty_course_mappings').upsert(updatedMap!);
+      } catch (e) {
+        console.warn('Supabase mapping save error:', e);
+      }
+    }
+
     return updatedMap!;
   },
 
   // Evaluation Questions
   async getQuestions(): Promise<FeedbackQuestion[]> {
+    if (isSupabaseConfigured && supabase) {
+      try {
+        const { data, error } = await supabase.from('feedback_questions').select('*').order('display_order', { ascending: true });
+        if (data && data.length > 0 && !error) {
+          setStored(STORAGE_KEYS.QUESTIONS, data);
+          return data as FeedbackQuestion[];
+        }
+      } catch (e) {
+        console.warn('Supabase questions fetch error:', e);
+      }
+    }
     return getStored<FeedbackQuestion[]>(STORAGE_KEYS.QUESTIONS, INITIAL_QUESTIONS);
   },
 
   // Feedback Submissions
   async getSubmissions(filters?: Partial<GlobalFilterState>): Promise<FeedbackSubmission[]> {
+    if (isSupabaseConfigured && supabase) {
+      try {
+        let query = supabase.from('feedback').select('*, ratings:feedback_ratings(*)').order('submitted_at', { ascending: false });
+        if (filters?.academicYearId) query = query.eq('academic_year_id', filters.academicYearId);
+        if (filters?.departmentId) query = query.eq('department_id', filters.departmentId);
+        if (filters?.programmeId) query = query.eq('programme_id', filters.programmeId);
+        if (filters?.semester) query = query.eq('semester', parseInt(filters.semester));
+        if (filters?.courseId) query = query.eq('course_id', filters.courseId);
+        if (filters?.facultyId) query = query.eq('faculty_id', filters.facultyId);
+
+        const { data, error } = await query;
+        if (data && !error) {
+          const mappedList: FeedbackSubmission[] = data.map((sub: any) => {
+            const ratingsList = sub.ratings ? sub.ratings.map((r: any) => ({
+              question_number: r.question_number,
+              rating: r.rating
+            })) : [];
+            const totalScore = ratingsList.reduce((acc: number, curr: any) => acc + curr.rating, 0);
+            const percentage = formatPercentage((totalScore / 75) * 100);
+            const { grade, performance } = calculateGrade(totalScore);
+
+            return {
+              id: sub.id,
+              academic_year_id: sub.academic_year_id,
+              department_id: sub.department_id,
+              programme_id: sub.programme_id,
+              semester: sub.semester,
+              course_id: sub.course_id,
+              faculty_id: sub.faculty_id,
+              mapping_id: sub.mapping_id,
+              suggestion_positive: sub.suggestion_positive,
+              suggestion_improvement: sub.suggestion_improvement,
+              additional_comments: sub.additional_comments,
+              submitted_at: sub.submitted_at,
+              ratings: ratingsList,
+              total_score: totalScore,
+              percentage: percentage,
+              grade: grade,
+              performance: performance
+            };
+          });
+          setStored(STORAGE_KEYS.SUBMISSIONS, mappedList);
+          return mappedList;
+        }
+      } catch (e) {
+        console.warn('Supabase submissions fetch error:', e);
+      }
+    }
+
     let list = getStored<FeedbackSubmission[]>(STORAGE_KEYS.SUBMISSIONS, []);
-    
     if (!filters) return list;
 
     return list.filter(sub => {
@@ -377,9 +605,10 @@ export const dbService = {
     const totalScore = payload.ratings.reduce((acc, curr) => acc + curr.rating, 0);
     const percentage = formatPercentage((totalScore / 75) * 100);
     const { grade, performance } = calculateGrade(totalScore);
+    const submissionId = generateUUID();
 
     const newSubmission: FeedbackSubmission = {
-      id: `fb-${Date.now()}`,
+      id: submissionId,
       academic_year_id: payload.academic_year_id,
       department_id: payload.department_id,
       programme_id: payload.programme_id,
@@ -400,6 +629,54 @@ export const dbService = {
 
     list.unshift(newSubmission);
     setStored(STORAGE_KEYS.SUBMISSIONS, list);
+
+    if (isSupabaseConfigured && supabase) {
+      try {
+        // Try atomic procedure first
+        const { data, error } = await supabase.rpc('submit_feedback_atomic', {
+          p_academic_year_id: payload.academic_year_id,
+          p_department_id: payload.department_id,
+          p_programme_id: payload.programme_id,
+          p_semester: payload.semester,
+          p_course_id: payload.course_id,
+          p_faculty_id: payload.faculty_id,
+          p_mapping_id: payload.mapping_id || null,
+          p_suggestion_positive: payload.suggestion_positive || null,
+          p_suggestion_improvement: payload.suggestion_improvement || null,
+          p_additional_comments: payload.additional_comments || null,
+          p_ratings: payload.ratings
+        });
+
+        if (error) {
+          // Direct fallback insert
+          const { data: fbRow, error: fbErr } = await supabase.from('feedback').insert({
+            id: submissionId,
+            academic_year_id: payload.academic_year_id,
+            department_id: payload.department_id,
+            programme_id: payload.programme_id,
+            semester: payload.semester,
+            course_id: payload.course_id,
+            faculty_id: payload.faculty_id,
+            mapping_id: payload.mapping_id,
+            suggestion_positive: payload.suggestion_positive,
+            suggestion_improvement: payload.suggestion_improvement,
+            additional_comments: payload.additional_comments
+          }).select().single();
+
+          if (fbRow && !fbErr) {
+            const ratingRows = payload.ratings.map(r => ({
+              feedback_id: fbRow.id,
+              question_number: r.question_number,
+              rating: r.rating
+            }));
+            await supabase.from('feedback_ratings').insert(ratingRows);
+          }
+        }
+      } catch (e) {
+        console.warn('Supabase feedback submit error:', e);
+      }
+    }
+
     return newSubmission;
   },
 
@@ -407,11 +684,29 @@ export const dbService = {
     const list = getStored<FeedbackSubmission[]>(STORAGE_KEYS.SUBMISSIONS, []);
     const updated = list.filter(sub => sub.id !== id);
     setStored(STORAGE_KEYS.SUBMISSIONS, updated);
+
+    if (isSupabaseConfigured && supabase) {
+      try {
+        await supabase.from('feedback').delete().eq('id', id);
+      } catch (e) {
+        console.warn('Supabase delete submission error:', e);
+      }
+    }
+
     return true;
   },
 
   async clearAllSubmissions(): Promise<boolean> {
     setStored(STORAGE_KEYS.SUBMISSIONS, []);
+
+    if (isSupabaseConfigured && supabase) {
+      try {
+        await supabase.from('feedback').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+      } catch (e) {
+        console.warn('Supabase clear submissions error:', e);
+      }
+    }
+
     return true;
   },
 
@@ -687,6 +982,20 @@ export const dbService = {
     localStorage.setItem(STORAGE_KEYS.IMPLEMENTATION_PLAN, JSON.stringify(INITIAL_IMPLEMENTATION_PLAN));
     localStorage.setItem(STORAGE_KEYS.DATABASE_SCHEMA, JSON.stringify(INITIAL_SCHEMA_ROWS));
     localStorage.setItem(STORAGE_KEYS.GRADING_STANDARDS, JSON.stringify(INITIAL_GRADING_STANDARDS));
+
+    if (isSupabaseConfigured && supabase) {
+      try {
+        await supabase.from('departments').upsert(INITIAL_DEPARTMENTS);
+        await supabase.from('academic_years').upsert(INITIAL_ACADEMIC_YEARS);
+        await supabase.from('programmes').upsert(INITIAL_PROGRAMMES);
+        await supabase.from('faculty').upsert(INITIAL_FACULTY);
+        await supabase.from('courses').upsert(INITIAL_COURSES);
+        await supabase.from('faculty_course_mappings').upsert(INITIAL_MAPPINGS);
+        await supabase.from('feedback_questions').upsert(INITIAL_QUESTIONS);
+      } catch (e) {
+        console.warn('Supabase reset error:', e);
+      }
+    }
   },
 
   // Generic Bulk Insert / Import
@@ -696,42 +1005,63 @@ export const dbService = {
         const existing = await this.getAcademicYears();
         const updated = overwrite ? [...rows] : [...existing, ...rows];
         setStored(STORAGE_KEYS.ACADEMIC_YEARS, updated);
+        if (isSupabaseConfigured && supabase) {
+          try { await supabase.from('academic_years').upsert(rows); } catch (e) {}
+        }
         return rows.length;
       }
       case 'departments': {
         const existing = await this.getDepartments();
         const updated = overwrite ? [...rows] : [...existing, ...rows];
         setStored(STORAGE_KEYS.DEPARTMENTS, updated);
+        if (isSupabaseConfigured && supabase) {
+          try { await supabase.from('departments').upsert(rows); } catch (e) {}
+        }
         return rows.length;
       }
       case 'programmes': {
         const existing = await this.getProgrammes();
         const updated = overwrite ? [...rows] : [...existing, ...rows];
         setStored(STORAGE_KEYS.PROGRAMMES, updated);
+        if (isSupabaseConfigured && supabase) {
+          try { await supabase.from('programmes').upsert(rows); } catch (e) {}
+        }
         return rows.length;
       }
       case 'faculty': {
         const existing = await this.getFaculty();
         const updated = overwrite ? [...rows] : [...existing, ...rows];
         setStored(STORAGE_KEYS.FACULTY, updated);
+        if (isSupabaseConfigured && supabase) {
+          try { await supabase.from('faculty').upsert(rows); } catch (e) {}
+        }
         return rows.length;
       }
       case 'courses': {
         const existing = await this.getCourses();
         const updated = overwrite ? [...rows] : [...existing, ...rows];
         setStored(STORAGE_KEYS.COURSES, updated);
+        if (isSupabaseConfigured && supabase) {
+          try { await supabase.from('courses').upsert(rows); } catch (e) {}
+        }
         return rows.length;
       }
       case 'mappings': {
         const existing = await this.getMappings();
         const updated = overwrite ? [...rows] : [...existing, ...rows];
         setStored(STORAGE_KEYS.MAPPINGS, updated);
+        if (isSupabaseConfigured && supabase) {
+          try { await supabase.from('faculty_course_mappings').upsert(rows); } catch (e) {}
+        }
         return rows.length;
       }
       case 'questions': {
         const existing = await this.getQuestions();
         const updated = overwrite ? [...rows] : [...existing, ...rows];
         setStored(STORAGE_KEYS.QUESTIONS, updated);
+        if (isSupabaseConfigured && supabase) {
+          try { await supabase.from('feedback_questions').upsert(rows); } catch (e) {}
+        }
         return rows.length;
       }
       case 'implementation_plan': {
@@ -757,4 +1087,3 @@ export const dbService = {
     }
   }
 };
-
