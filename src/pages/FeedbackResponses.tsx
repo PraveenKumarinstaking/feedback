@@ -26,8 +26,8 @@ export const FeedbackResponses: React.FC = () => {
   const [showClearAllModal, setShowClearAllModal] = useState<boolean>(false);
   const [toast, setToast] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
-  const loadData = async () => {
-    setLoading(true);
+  const loadData = async (silent: boolean = false) => {
+    if (!silent) setLoading(true);
     try {
       const [subs, ays, depts, progs, crss, facs] = await Promise.all([
         dbService.getSubmissions(),
@@ -47,15 +47,15 @@ export const FeedbackResponses: React.FC = () => {
     } catch (e) {
       console.error(e);
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   };
 
   useEffect(() => {
-    loadData();
+    loadData(false);
 
     const handleRealtimeUpdate = () => {
-      loadData();
+      loadData(true);
     };
 
     window.addEventListener('storage', handleRealtimeUpdate);
@@ -70,8 +70,8 @@ export const FeedbackResponses: React.FC = () => {
     }
 
     const pollInterval = setInterval(() => {
-      loadData();
-    }, 3000);
+      loadData(true);
+    }, 10000);
 
     return () => {
       window.removeEventListener('storage', handleRealtimeUpdate);
@@ -128,14 +128,16 @@ export const FeedbackResponses: React.FC = () => {
       s.grade || ''
     ]);
 
-    const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows.map(e => e.join(','))].join('\n');
-    const encodedUri = encodeURI(csvContent);
+    const csvContent = [headers.join(','), ...rows.map(e => e.join(','))].join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
-    link.setAttribute('href', encodedUri);
+    link.setAttribute('href', url);
     link.setAttribute('download', `feedback_submission_records_${new Date().toISOString().slice(0, 10)}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+    URL.revokeObjectURL(url);
   };
 
   const filteredSubmissions = submissions.filter(s => {

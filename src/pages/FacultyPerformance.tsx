@@ -21,21 +21,21 @@ export const FacultyPerformance: React.FC = () => {
   const [previewFac, setPreviewFac] = useState<FacultyPerformanceSummary | null>(null);
 
   useEffect(() => {
-    async function loadData() {
-      setLoading(true);
+    async function loadData(silent: boolean = false) {
+      if (!silent) setLoading(true);
       try {
         const data = await dbService.getFacultyPerformance();
         setFacultyPerf(data);
       } catch (e) {
         console.error(e);
       } finally {
-        setLoading(false);
+        if (!silent) setLoading(false);
       }
     }
-    loadData();
+    loadData(false);
 
     const handleRealtimeUpdate = () => {
-      loadData();
+      loadData(true);
     };
 
     window.addEventListener('storage', handleRealtimeUpdate);
@@ -50,8 +50,8 @@ export const FacultyPerformance: React.FC = () => {
     }
 
     const pollInterval = setInterval(() => {
-      loadData();
-    }, 3000);
+      loadData(true);
+    }, 10000);
 
     return () => {
       window.removeEventListener('storage', handleRealtimeUpdate);
@@ -86,14 +86,16 @@ export const FacultyPerformance: React.FC = () => {
       `"${f.iqac_interpretation}"`
     ]);
 
-    const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows.map(e => e.join(','))].join('\n');
-    const encodedUri = encodeURI(csvContent);
+    const csvContent = [headers.join(','), ...rows.map(e => e.join(','))].join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
-    link.setAttribute('href', encodedUri);
+    link.setAttribute('href', url);
     link.setAttribute('download', `Faculty_Performance_Report_${new Date().toISOString().slice(0, 10)}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+    URL.revokeObjectURL(url);
   };
 
   const handlePrintReport = () => {

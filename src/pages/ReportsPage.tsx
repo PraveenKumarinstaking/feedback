@@ -43,8 +43,8 @@ export const ReportsPage: React.FC = () => {
   const [submissions, setSubmissions] = useState<FeedbackSubmission[]>([]);
   const [questionAnalysis, setQuestionAnalysis] = useState<QuestionAnalysis[]>([]);
 
-  const loadReportData = async (currentFilters: GlobalFilterState) => {
-    setLoading(true);
+  const loadReportData = async (currentFilters: GlobalFilterState, silent: boolean = false) => {
+    if (!silent) setLoading(true);
     try {
       const [ays, depts, progs, crss, facs, subs, qData] = await Promise.all([
         dbService.getAcademicYears(),
@@ -66,15 +66,15 @@ export const ReportsPage: React.FC = () => {
     } catch (e) {
       console.error(e);
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   };
 
   useEffect(() => {
-    loadReportData(filters);
+    loadReportData(filters, false);
 
     const handleRealtimeUpdate = () => {
-      loadReportData(filters);
+      loadReportData(filters, true);
     };
 
     window.addEventListener('storage', handleRealtimeUpdate);
@@ -89,8 +89,8 @@ export const ReportsPage: React.FC = () => {
     }
 
     const pollInterval = setInterval(() => {
-      loadReportData(filters);
-    }, 3000);
+      loadReportData(filters, true);
+    }, 10000);
 
     return () => {
       window.removeEventListener('storage', handleRealtimeUpdate);
@@ -104,21 +104,42 @@ export const ReportsPage: React.FC = () => {
     window.print();
   };
 
+  const handleFilterChange = (newFilters: GlobalFilterState) => {
+    setFilters(newFilters);
+    loadReportData(newFilters);
+  };
+
+  const handleResetFilters = () => {
+    const emptyFilters: GlobalFilterState = {
+      academicYearId: '',
+      departmentId: '',
+      programmeId: '',
+      semester: '',
+      courseId: '',
+      facultyId: '',
+      startDate: '',
+      endDate: ''
+    };
+    setFilters(emptyFilters);
+    loadReportData(emptyFilters);
+  };
+
   const handleExportCSV = () => {
-    let csvContent = "data:text/csv;charset=utf-8,";
-    csvContent += "S.No,Evaluation Criteria,Category,Average Rating (/5.0),Percentage (%)\n";
+    let csvContent = "S.No,Evaluation Criteria,Category,Average Rating (/5.0),Percentage (%)\n";
 
     questionAnalysis.forEach(q => {
       csvContent += `"${q.question_number}","${q.question_text.replace(/"/g, '""')}","${q.category}","${q.average_rating}","${q.percentage}"\n`;
     });
 
-    const encodedUri = encodeURI(csvContent);
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
+    link.setAttribute("href", url);
     link.setAttribute("download", `Student_Feedback_Analysis_Report_${Date.now()}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+    URL.revokeObjectURL(url);
   };
 
   // Selected Names
@@ -187,9 +208,7 @@ export const ReportsPage: React.FC = () => {
 
       {/* Filter Bar (Hidden on print) */}
       <div className="no-print">
-        <FilterBar filters={filters} onFilterChange={loadReportData} onReset={() => loadReportData({
-          academicYearId: '', departmentId: '', programmeId: '', semester: '', courseId: '', facultyId: '', startDate: '', endDate: ''
-        })} />
+        <FilterBar filters={filters} onFilterChange={handleFilterChange} onReset={handleResetFilters} />
       </div>
 
       {/* ============================================================ */}

@@ -66,8 +66,8 @@ export const Dashboard: React.FC = () => {
   const [questionAnalysis, setQuestionAnalysis] = useState<QuestionAnalysis[]>([]);
   const [submissions, setSubmissions] = useState<FeedbackSubmission[]>([]);
 
-  const loadDashboardData = async (currentFilters: GlobalFilterState) => {
-    setLoading(true);
+  const loadDashboardData = async (currentFilters: GlobalFilterState, silent: boolean = false) => {
+    if (!silent) setLoading(true);
     try {
       const [statsData, facData, deptData, qData, subsData] = await Promise.all([
         dbService.getDashboardStats(currentFilters),
@@ -85,15 +85,15 @@ export const Dashboard: React.FC = () => {
     } catch (e) {
       console.error('Error loading dashboard data:', e);
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   };
 
   useEffect(() => {
-    loadDashboardData(filters);
+    loadDashboardData(filters, false);
 
     const handleRealtimeUpdate = () => {
-      loadDashboardData(filters);
+      loadDashboardData(filters, true);
     };
 
     window.addEventListener('storage', handleRealtimeUpdate);
@@ -107,10 +107,10 @@ export const Dashboard: React.FC = () => {
       } catch (e) {}
     }
 
-    // 3-Second Auto-Refresh Polling Timer for multi-device sync
+    // Silent background sync
     const pollInterval = setInterval(() => {
-      loadDashboardData(filters);
-    }, 3000);
+      loadDashboardData(filters, true);
+    }, 10000);
 
     return () => {
       window.removeEventListener('storage', handleRealtimeUpdate);

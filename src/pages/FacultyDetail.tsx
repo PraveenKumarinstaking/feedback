@@ -116,8 +116,7 @@ export const FacultyDetail: React.FC = () => {
   const addComments = submissions.map(s => s.additional_comments).filter(Boolean);
 
   const handleExportCSV = () => {
-    let csvContent = 'data:text/csv;charset=utf-8,';
-    csvContent += `Faculty Evaluation Scorecard - ${faculty.faculty_name}\n`;
+    let csvContent = `Faculty Evaluation Scorecard - ${faculty.faculty_name}\n`;
     csvContent += `Employee Code,${faculty.faculty_code}\n`;
     csvContent += `Department,${department?.department_name || ''}\n`;
     csvContent += `Total Submissions,${submissions.length}\n`;
@@ -131,13 +130,15 @@ export const FacultyDetail: React.FC = () => {
       csvContent += `"${q.question_number}","${q.question_text.replace(/"/g, '""')}","${q.category}","${q.average_rating}","${q.percentage}"\n`;
     });
 
-    const encodedUri = encodeURI(csvContent);
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
-    link.setAttribute('href', encodedUri);
+    link.setAttribute('href', url);
     link.setAttribute('download', `Faculty_Scorecard_${faculty.faculty_code}_${Date.now()}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+    URL.revokeObjectURL(url);
   };
 
   const handlePrint = () => {

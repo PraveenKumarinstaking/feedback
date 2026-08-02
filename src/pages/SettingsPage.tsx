@@ -1,15 +1,37 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Save, CheckCircle2, ShieldCheck, Lock, Unlock, EyeOff } from 'lucide-react';
 import { useSettings } from '../contexts/SettingsContext';
+import { LoadingState } from '../components/common/LoadingState';
 
 export const SettingsPage: React.FC = () => {
-  const { settings, updateSettings } = useSettings();
+  const { settings, updateSettings, loading } = useSettings();
   const [formData, setFormData] = useState(settings);
   const [savedSuccess, setSavedSuccess] = useState<boolean>(false);
   const [saving, setSaving] = useState<boolean>(false);
 
+  useEffect(() => {
+    setFormData(settings);
+  }, [settings]);
+
   const handleChange = (field: keyof typeof formData, value: any) => {
     setFormData(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleQuickToggle = async (field: keyof typeof formData, value: any) => {
+    const updated = { ...formData, [field]: value };
+    setFormData(updated);
+    setSaving(true);
+    setSavedSuccess(false);
+
+    try {
+      await updateSettings({ [field]: value });
+      setSavedSuccess(true);
+      setTimeout(() => setSavedSuccess(false), 3000);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -27,6 +49,10 @@ export const SettingsPage: React.FC = () => {
       setSaving(false);
     }
   };
+
+  if (loading) {
+    return <LoadingState message="Loading institutional & feedback settings..." />;
+  }
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
@@ -60,7 +86,7 @@ export const SettingsPage: React.FC = () => {
 
               <button
                 type="button"
-                onClick={() => handleChange('feedback_form_open', !formData.feedback_form_open)}
+                onClick={() => handleQuickToggle('feedback_form_open', !formData.feedback_form_open)}
                 className={`px-4 py-2 text-xs font-extrabold rounded-xl shadow-sm transition-all flex items-center gap-1.5 ${
                   formData.feedback_form_open
                     ? 'bg-rose-600 hover:bg-rose-700 text-white'
@@ -86,7 +112,7 @@ export const SettingsPage: React.FC = () => {
                 <input
                   type="checkbox"
                   checked={formData.anonymous_mode}
-                  onChange={e => handleChange('anonymous_mode', e.target.checked)}
+                  onChange={e => handleQuickToggle('anonymous_mode', e.target.checked)}
                   className="sr-only peer"
                 />
                 <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-brand-600"></div>

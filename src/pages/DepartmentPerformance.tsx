@@ -22,21 +22,21 @@ export const DepartmentPerformance: React.FC = () => {
   const [departmentFaculty, setDepartmentFaculty] = useState<DepartmentFacultyItem[]>([]);
 
   useEffect(() => {
-    async function loadData() {
-      setLoading(true);
+    async function loadData(silent: boolean = false) {
+      if (!silent) setLoading(true);
       try {
         const data = await dbService.getDepartmentPerformance();
         setDeptPerf(data);
       } catch (e) {
         console.error(e);
       } finally {
-        setLoading(false);
+        if (!silent) setLoading(false);
       }
     }
-    loadData();
+    loadData(false);
 
     const handleRealtimeUpdate = () => {
-      loadData();
+      loadData(true);
     };
 
     window.addEventListener('storage', handleRealtimeUpdate);
@@ -51,8 +51,8 @@ export const DepartmentPerformance: React.FC = () => {
     }
 
     const pollInterval = setInterval(() => {
-      loadData();
-    }, 3000);
+      loadData(true);
+    }, 10000);
 
     return () => {
       window.removeEventListener('storage', handleRealtimeUpdate);

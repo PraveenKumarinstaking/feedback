@@ -70,16 +70,28 @@ export const FeedbackPage: React.FC = () => {
       ]);
 
       const activeAYs = ays.filter(a => a.status === 'active');
-      setAcademicYears(activeAYs);
-      const current = activeAYs.find(a => a.is_current) || activeAYs[0];
+      const ayList = activeAYs.length > 0 ? activeAYs : ays;
+      setAcademicYears(ayList);
+      const current = ayList.find(a => a.is_current) || ayList[0];
       if (current) setSelectedAY(current.id);
 
-      setDepartments(depts.filter(d => d.status === 'active'));
-      setProgrammes(progs.filter(p => p.status === 'active'));
-      setCourses(crss.filter(c => c.status === 'active'));
-      setFacultyList(facs.filter(f => f.status === 'active'));
-      setMappings(maps.filter(m => m.status === 'active'));
-      setQuestions(qns.filter(q => q.is_active));
+      const activeDepts = depts.filter(d => d.status === 'active');
+      setDepartments(activeDepts.length > 0 ? activeDepts : depts);
+
+      const activeProgs = progs.filter(p => p.status === 'active');
+      setProgrammes(activeProgs.length > 0 ? activeProgs : progs);
+
+      const activeCrss = crss.filter(c => c.status === 'active');
+      setCourses(activeCrss.length > 0 ? activeCrss : crss);
+
+      const activeFacs = facs.filter(f => f.status === 'active');
+      setFacultyList(activeFacs.length > 0 ? activeFacs : facs);
+
+      const activeMaps = maps.filter(m => m.status === 'active');
+      setMappings(activeMaps.length > 0 ? activeMaps : maps);
+
+      const activeQns = qns.filter(q => q.is_active);
+      setQuestions(activeQns.length > 0 ? activeQns : qns);
     }
     initData();
   }, []);

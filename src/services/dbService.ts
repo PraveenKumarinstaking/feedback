@@ -142,21 +142,24 @@ function setStored<T>(key: string, data: T): void {
 export const dbService = {
   // Settings
   async getSettings(): Promise<InstitutionSettings> {
+    const localSettings = getStored<InstitutionSettings>(STORAGE_KEYS.SETTINGS, INITIAL_SETTINGS);
+    const hasLocalCustomizations = localStorage.getItem(STORAGE_KEYS.SETTINGS) !== null;
+
     if (isSupabaseConfigured && supabase) {
       try {
-        const { data, error } = await supabase.from('settings').select('*').limit(1).single();
+        const { data, error } = await supabase.from('settings').select('*').limit(1).maybeSingle();
         if (data && !error) {
           const mapped: InstitutionSettings = {
-            institution_name: data.institution_name,
-            institution_short_name: data.institution_short_name,
-            institution_logo: data.institution_logo,
-            address: data.address,
-            report_header: data.report_header,
-            feedback_form_open: data.feedback_form_open,
-            anonymous_mode: data.anonymous_mode,
-            report_footer: data.report_footer,
-            principal_name: data.principal_name,
-            iqac_coordinator_name: data.iqac_coordinator_name
+            institution_name: (hasLocalCustomizations ? localSettings.institution_name : (data.institution_name || localSettings.institution_name)) || INITIAL_SETTINGS.institution_name,
+            institution_short_name: (hasLocalCustomizations ? localSettings.institution_short_name : (data.institution_short_name || localSettings.institution_short_name)) || INITIAL_SETTINGS.institution_short_name,
+            institution_logo: (hasLocalCustomizations ? localSettings.institution_logo : (data.institution_logo || localSettings.institution_logo)) || INITIAL_SETTINGS.institution_logo,
+            address: (hasLocalCustomizations ? localSettings.address : (data.address || localSettings.address)) || INITIAL_SETTINGS.address,
+            report_header: (hasLocalCustomizations ? localSettings.report_header : (data.report_header || localSettings.report_header)) || INITIAL_SETTINGS.report_header,
+            feedback_form_open: hasLocalCustomizations ? localSettings.feedback_form_open : (data.feedback_form_open ?? localSettings.feedback_form_open),
+            anonymous_mode: hasLocalCustomizations ? localSettings.anonymous_mode : (data.anonymous_mode ?? localSettings.anonymous_mode),
+            report_footer: (hasLocalCustomizations ? localSettings.report_footer : (data.report_footer || localSettings.report_footer)) || INITIAL_SETTINGS.report_footer,
+            principal_name: (hasLocalCustomizations ? localSettings.principal_name : (data.principal_name || localSettings.principal_name)) || INITIAL_SETTINGS.principal_name,
+            iqac_coordinator_name: (hasLocalCustomizations ? localSettings.iqac_coordinator_name : (data.iqac_coordinator_name || localSettings.iqac_coordinator_name)) || INITIAL_SETTINGS.iqac_coordinator_name
           };
           setStored(STORAGE_KEYS.SETTINGS, mapped);
           return mapped;
@@ -165,11 +168,11 @@ export const dbService = {
         console.warn('Supabase settings fetch error, using local storage:', e);
       }
     }
-    return getStored<InstitutionSettings>(STORAGE_KEYS.SETTINGS, INITIAL_SETTINGS);
+    return localSettings;
   },
 
   async updateSettings(settings: Partial<InstitutionSettings>): Promise<InstitutionSettings> {
-    const current = await this.getSettings();
+    const current = getStored<InstitutionSettings>(STORAGE_KEYS.SETTINGS, INITIAL_SETTINGS);
     const updated = { ...current, ...settings };
     setStored(STORAGE_KEYS.SETTINGS, updated);
 
@@ -526,6 +529,8 @@ export const dbService = {
 
   // Feedback Submissions
   async getSubmissions(filters?: Partial<GlobalFilterState>): Promise<FeedbackSubmission[]> {
+    let localList = getStored<FeedbackSubmission[]>(STORAGE_KEYS.SUBMISSIONS, []);
+
     if (isSupabaseConfigured && supabase) {
       try {
         let query = supabase.from('feedback').select('*, ratings:feedback_ratings(*)').order('submitted_at', { ascending: false });
@@ -537,7 +542,7 @@ export const dbService = {
         if (filters?.facultyId) query = query.eq('faculty_id', filters.facultyId);
 
         const { data, error } = await query;
-        if (data && !error) {
+        if (data && data.length > 0 && !error) {
           const mappedList: FeedbackSubmission[] = data.map((sub: any) => {
             const ratingsList = sub.ratings ? sub.ratings.map((r: any) => ({
               question_number: r.question_number,
@@ -567,18 +572,27 @@ export const dbService = {
               performance: performance
             };
           });
-          setStored(STORAGE_KEYS.SUBMISSIONS, mappedList);
-          return mappedList;
+
+          // Merge local and Supabase submissions to avoid losing local submissions
+          const map = new Map<string, FeedbackSubmission>();
+          localList.forEach(item => map.set(item.id, item));
+          mappedList.forEach(item => map.set(item.id, item));
+
+          const merged = Array.from(map.values()).sort(
+            (a, b) => new Date(b.submitted_at).getTime() - new Date(a.submitted_at).getTime()
+          );
+
+          setStored(STORAGE_KEYS.SUBMISSIONS, merged);
+          localList = merged;
         }
       } catch (e) {
         console.warn('Supabase submissions fetch error:', e);
       }
     }
 
-    let list = getStored<FeedbackSubmission[]>(STORAGE_KEYS.SUBMISSIONS, []);
-    if (!filters) return list;
+    if (!filters) return localList;
 
-    return list.filter(sub => {
+    return localList.filter(sub => {
       if (filters.academicYearId && sub.academic_year_id !== filters.academicYearId) return false;
       if (filters.departmentId && sub.department_id !== filters.departmentId) return false;
       if (filters.programmeId && sub.programme_id !== filters.programmeId) return false;

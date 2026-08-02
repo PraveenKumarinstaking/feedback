@@ -81,9 +81,6 @@ export const UserAccessPage: React.FC = () => {
         <div>
           <div className="flex items-center gap-2">
             <h1 className="text-2xl font-black text-gray-900 tracking-tight">User Access & Device Matrix</h1>
-            <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-brand-100 text-brand-700">
-              Desktop + Mobile Control
-            </span>
           </div>
           <p className="text-xs text-gray-500 mt-1">
             Configure access control privileges, monitor desktop vs mobile user traffic, and manage module permissions.
