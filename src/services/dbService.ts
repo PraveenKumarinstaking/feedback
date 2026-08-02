@@ -740,6 +740,26 @@ export const dbService = {
     return true;
   },
 
+  subscribeToRealtimeSubmissions(callback: () => void): () => void {
+    if (isSupabaseConfigured && supabase) {
+      try {
+        const channel = supabase
+          .channel('realtime_feedback_changes')
+          .on('postgres_changes', { event: '*', schema: 'public', table: 'feedback' }, () => {
+            callback();
+          })
+          .subscribe();
+
+        return () => {
+          if (supabase) supabase.removeChannel(channel);
+        };
+      } catch (e) {
+        console.warn('Realtime subscription error:', e);
+      }
+    }
+    return () => {};
+  },
+
   // ----------------------------------------------------
   // Analytics & Summary Calculations
   // ----------------------------------------------------

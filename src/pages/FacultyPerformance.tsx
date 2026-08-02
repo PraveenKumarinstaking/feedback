@@ -41,6 +41,8 @@ export const FacultyPerformance: React.FC = () => {
     window.addEventListener('storage', handleRealtimeUpdate);
     window.addEventListener('edu_feedback_submitted', handleRealtimeUpdate);
 
+    const unsubscribeRealtime = dbService.subscribeToRealtimeSubmissions(handleRealtimeUpdate);
+
     let channel: BroadcastChannel | null = null;
     if (typeof BroadcastChannel !== 'undefined') {
       try {
@@ -56,6 +58,7 @@ export const FacultyPerformance: React.FC = () => {
     return () => {
       window.removeEventListener('storage', handleRealtimeUpdate);
       window.removeEventListener('edu_feedback_submitted', handleRealtimeUpdate);
+      unsubscribeRealtime();
       if (channel) channel.close();
       clearInterval(pollInterval);
     };
